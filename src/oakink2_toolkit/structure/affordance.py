@@ -14,12 +14,13 @@ class OakInk2__Affordance(NamedData):
     obj_id: str = None
     obj_name: str = None
 
-    is_part: bool = False
-    obj_instance_id: Optional[str] = None
-    obj_part_id: Optional[list[str]] = None
+    has_model: bool = False
+    obj_instance_id: str = None
+    obj_part_id: list[str] = None
     obj_urdf_filepath: Optional[str] = None
 
-    affordance_list: list[str] = None
+    affordance_list: list[str] = None  # affordance, function-level
+    affordance_instantiation_list: list[str] = None  # instantiated affordance, interaction (task)-level
 
     # field to be instantiated
     obj_mesh: Optional[

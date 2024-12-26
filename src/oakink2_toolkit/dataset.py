@@ -91,6 +91,20 @@ def fix_g_info(g_info, affordance_task_namemap):
     return g_info
 
 
+def rev_part_tree(part_tree):
+    res = {}
+    for k, v in part_tree.items():
+        for part in v:
+            res[part] = k
+    return res
+
+
+def get_part_tree_root(rev_part_tree, obj_id):
+    while obj_id in rev_part_tree:
+        obj_id = rev_part_tree[obj_id]
+    return obj_id
+
+
 class OakInk2__Dataset(torch.utils.data.Dataset):
     def __init__(
         self,
@@ -98,6 +112,7 @@ class OakInk2__Dataset(torch.utils.data.Dataset):
         return_instantiated: bool = False,
         anno_offset: str = "anno_preview",
         obj_offset: str = "object_raw",
+        affordance_offset: str = "object_affordance",
     ):
         self.dataset_prefix = dataset_prefix
 
@@ -107,6 +122,7 @@ class OakInk2__Dataset(torch.utils.data.Dataset):
         self.obj_model_prefix = os.path.join(self.obj_prefix, "align_ds")
         self.program_prefix = os.path.join(self.dataset_prefix, "program")
         self.program_extension_prefix = os.path.join(self.dataset_prefix, "program_extension")
+        self.obj_affordance_prefix = os.path.join(self.dataset_prefix, "object_affordance")
 
         task_target_filepath = os.path.join(self.program_prefix, "task_target.json")
         self.task_target = load_json(task_target_filepath)
@@ -117,6 +133,18 @@ class OakInk2__Dataset(torch.utils.data.Dataset):
 
         obj_desc_filepath = os.path.join(self.obj_prefix, "obj_desc.json")
         self.obj_desc = load_json(obj_desc_filepath)
+
+        # affordance related
+        self.obj_affordance_part_filedir = os.path.join(self.obj_affordance_prefix, "affordance_part")
+        part_desc_filepath = os.path.join(self.obj_affordance_prefix, "part_desc.json")
+        self.part_desc = load_json(part_desc_filepath)
+        instance_id_filepath = os.path.join(self.obj_affordance_prefix, "instance_id.json")
+        self.instance_id = load_json(instance_id_filepath)
+        part_tree_filepath = os.path.join(self.obj_affordance_prefix, "object_part_tree.json")
+        self.part_tree = load_json(part_tree_filepath)
+        self.rev_part_tree = rev_part_tree(self.part_tree)
+        object_affordance_filepath = os.path.join(self.obj_affordance_prefix, "object_affordance.json")
+        self.object_affordance = load_json(object_affordance_filepath)
 
         self.all_seq_list = list(self.task_target.keys())
 
@@ -134,19 +162,26 @@ class OakInk2__Dataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.all_seq_list)
 
+    def _load_obj(self, obj_part_id: str) -> trimesh.Trimesh:
+        try:
+            res = load_obj(self.obj_model_prefix, obj_part_id)
+        except FileNotFoundError:
+            res = load_obj(self.obj_affordance_part_filedir, obj_part_id)
+        return res
+
     def instantiate_affordance(self, affordance_data: OakInk2__Affordance):
         if not affordance_data.instantiated:
-            if not affordance_data.is_part:
+            if not affordance_data.has_model:
                 affordance_data.obj_mesh = {}
                 for obj_part_id in affordance_data.obj_part_id:
                     if obj_part_id not in self.obj_cache:
-                        self.obj_cache[obj_part_id] = load_obj(self.obj_model_prefix, obj_part_id)
+                        self.obj_cache[obj_part_id] = self._load_obj(obj_part_id)
                     obj_part_mesh = self.obj_cache[obj_part_id]
                     affordance_data.obj_mesh[obj_part_id] = obj_part_mesh
             else:
                 obj_part_id = affordance_data.obj_id
                 if obj_part_id not in self.obj_cache:
-                    self.obj_cache[obj_part_id] = load_obj(self.obj_model_prefix, obj_part_id)
+                    self.obj_cache[obj_part_id] = self._load_obj(obj_part_id)
                 obj_part_mesh = self.obj_cache[obj_part_id]
                 affordance_data.obj_mesh = obj_part_mesh
             affordance_data.instantiated = True
@@ -511,19 +546,25 @@ class OakInk2__Dataset(torch.utils.data.Dataset):
         if return_instantiated is None:
             return_instantiated = self.return_instantiated
 
-        obj_name = self.obj_desc[obj_id]["obj_name"]
-        is_part = True  # TODO: CHECK IF OBJ_ID MAPS TO INSTANCE
-        obj_instance_id = None  # TODO:
-        obj_part_id = None  # TODO: pack the full_obj_id_map into json, for obj return a list of part
+        if obj_id in self.obj_desc:
+            obj_name = self.obj_desc[obj_id]["obj_name"]
+        else:
+            obj_name = self.part_desc[obj_id]["obj_name"]
+        has_model = self.object_affordance[obj_id]["has_model"]
+        obj_instance_id = get_part_tree_root(self.rev_part_tree, obj_id)
+        obj_part_id = self.part_tree[obj_id]
 
-        # TODO: instance-level and part-level affordance loading
+        affordance_list = self.object_affordance[obj_id]["affordance"]
+        affordance_instantiation_list = self.object_affordance[obj_id]["affordance_instantiation"]
 
         res = OakInk2__Affordance(
             obj_id=obj_id,
             obj_name=obj_name,
-            is_part=is_part,
+            has_model=has_model,
             obj_instance_id=obj_instance_id,
             obj_part_id=obj_part_id,
+            affordance_list=affordance_list,
+            affordance_instantiation_list=affordance_instantiation_list,
         )
         if return_instantiated:
             self.instantiate_affordance(res)
@@ -536,7 +577,11 @@ class OakInk2__Dataset(torch.utils.data.Dataset):
         if affordance_data.is_part:
             if return_instantiated:
                 affordance_data = self.instantiate_affordance(affordance_data)
-            return affordance_data
+            return [affordance_data]
         else:
-            # TODO: load each part
-            pass
+            # load each part
+            res = []
+            for obj_id in affordance_data.obj_part_id:
+                part_data = self.load_affordance(obj_id, return_instantiated=return_instantiated)
+                res.append(part_data)
+            return res
