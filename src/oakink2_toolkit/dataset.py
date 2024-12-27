@@ -9,6 +9,7 @@ import json
 import pickle
 import ast
 import typing
+import itertools
 
 if typing.TYPE_CHECKING:
     from typing import Optional
@@ -103,6 +104,14 @@ def get_part_tree_root(rev_part_tree, obj_id):
     while obj_id in rev_part_tree:
         obj_id = rev_part_tree[obj_id]
     return obj_id
+
+
+def obj_id_to_category(obj_id):
+    if "@" in obj_id:
+        _e = obj_id.split("@")
+        return _e[1]
+    else:  # OakInk-v1 ID
+        return f"{obj_id[1:3]:0>4}"
 
 
 class OakInk2__Dataset(torch.utils.data.Dataset):
@@ -585,3 +594,66 @@ class OakInk2__Dataset(torch.utils.data.Dataset):
                 part_data = self.load_affordance(obj_id, return_instantiated=return_instantiated)
                 res.append(part_data)
             return res
+
+    def get_object_by_category(self, *, category_id: str = None, category_name: str = None):
+        if category_id is None:
+            category_id = meta.CATEGORY_REVMAP[category_name]
+        elif isinstance(category_id, int):
+            category_id = f"{category_id:0>4}"
+        res = []
+        for oid in self.instance_id:
+            if obj_id_to_category(oid) == category_id:
+                res.append(oid)
+        return res
+
+    def get_part_by_category(self, *, category_id: str = None, category_name: str = None):
+        if category_id is None:
+            category_id = meta.CATEGORY_REVMAP[category_name]
+        elif isinstance(category_id, int):
+            category_id = f"{category_id:0>4}"
+        res = []
+        for oid in self.object_affordance:
+            if self.object_affordance[oid]["has_model"] and obj_id_to_category(oid) == category_id:
+                res.append(oid)
+        return res
+
+    def get_part_by_object(self, obj_id: str) -> list[str]:
+        res = []
+        front = [obj_id]
+        while len(front) > 0:
+            curr = front.pop()
+            res.append(curr)
+            front += self.part_tree[curr][::-1]
+        return res
+
+    def get_object_by_attribute(
+        self,
+        *,
+        attribute: str,
+        field: list[str] = ["affordance", "affordance_instantiation"],
+    ):
+        res = []
+        for oid in self.instance_id:
+            part_list = self.get_part_by_object(oid)
+            for pid, fd in itertools.product(part_list, field):
+                if attribute in self.object_affordance[pid][fd]:
+                    # if any part has attribute, record the object
+                    res.append(oid)
+                    break
+        return res
+
+    def get_part_by_attribute(
+        self,
+        *,
+        attribute: str,
+        field: list[str] = ["affordance", "affordance_instantiation"],
+    ):
+        res = []
+        for oid in self.object_affordance:
+            if not self.object_affordance[oid]["has_model"]:
+                continue
+            for fd in field:
+                if attribute in self.object_affordance[oid][fd]:
+                    res.append(oid)
+                    break
+        return res
