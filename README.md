@@ -383,3 +383,31 @@ This repo contains the OakInk2 dataset toolkit (oakink2_toolkit) -- a Python pac
     }
     ```
     <!-- Note that some filtering is required to properly load pdg data. See [oakink2_toolkit/dataset.py#L310-L323](src/oakink2_toolkit/dataset.py) for contracting excessive nodes. -->
+
+
+## FAQ
+
+    1. How to load the dataset with the `oakink2_toolkit` library?
+     
+        ```python
+        from oakink2_toolkit.dataset import OakInk2__Dataset
+
+        # Load the dataset
+        oi2_data = OakInk2__Dataset(
+            dataset_prefix='data',
+            return_instantiated=True,   # set to False if only metainfo wanted
+            anno_offset='anno_preview',
+            obj_offset='object_repair', # set to 'object_raw' for downsampled object raw scans
+            affordance_offset="object_affordance",
+        )
+        ```
+
+    2. `oakink2_viz_gui` fails to create context and reporting `libGL error: failed to load driver: swrast`.
+
+        Please rerun with environment variable `LIBGL_DEBUG=verbose` to get more information. 
+
+        If the error is due to `libffi.so.7` has wrong symbols when using conda environment, downgrade the `libffi` package to version 3.3.
+
+        ```bash
+        conda install libffi=3.3
+        ```

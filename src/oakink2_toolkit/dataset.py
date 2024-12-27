@@ -131,7 +131,7 @@ class OakInk2__Dataset(torch.utils.data.Dataset):
         self.obj_model_prefix = os.path.join(self.obj_prefix, "align_ds")
         self.program_prefix = os.path.join(self.dataset_prefix, "program")
         self.program_extension_prefix = os.path.join(self.dataset_prefix, "program_extension")
-        self.obj_affordance_prefix = os.path.join(self.dataset_prefix, "object_affordance")
+        self.obj_affordance_prefix = os.path.join(self.dataset_prefix, affordance_offset)
 
         task_target_filepath = os.path.join(self.program_prefix, "task_target.json")
         self.task_target = load_json(task_target_filepath)
