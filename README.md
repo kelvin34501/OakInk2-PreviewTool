@@ -389,31 +389,31 @@ This repo contains the OakInk2 dataset toolkit (oakink2_toolkit) -- a Python pac
 
 ## FAQ
 
-    1. How to load the dataset with the `oakink2_toolkit` library?
-     
-        ```python
-        from oakink2_toolkit.dataset import OakInk2__Dataset
+1. How to load the dataset with the `oakink2_toolkit` library?
+    
+    ```python
+    from oakink2_toolkit.dataset import OakInk2__Dataset
 
-        # Load the dataset
-        oi2_data = OakInk2__Dataset(
-            dataset_prefix='data',
-            return_instantiated=True,   # set to False if only metainfo wanted
-            anno_offset='anno_preview',
-            obj_offset='object_repair', # set to 'object_raw' for downsampled object raw scans
-            affordance_offset="object_affordance",
-        )
+    # Load the dataset
+    oi2_data = OakInk2__Dataset(
+        dataset_prefix='data',
+        return_instantiated=True,   # set to False if only metainfo wanted
+        anno_offset='anno_preview',
+        obj_offset='object_repair', # set to 'object_raw' for downsampled object raw scans
+        affordance_offset="object_affordance",
+    )
 
-        # Load sequence
-        # complex_task_data = oi2_data.load_complex_task(seq_key)
-        # primitive_task_data_list = oakink2_dataset.load_primitive_task(complex_task_data)
-        ```
+    # Load sequence
+    # complex_task_data = oi2_data.load_complex_task(seq_key)
+    # primitive_task_data_list = oakink2_dataset.load_primitive_task(complex_task_data)
+    ```
 
-    2. `oakink2_viz_gui` fails to create context and reporting `libGL error: failed to load driver: swrast`.
+2. `oakink2_viz_gui` fails to create context and reporting `libGL error: failed to load driver: swrast`.
 
-        Please rerun with environment variable `LIBGL_DEBUG=verbose` to get more information. 
+    Please rerun with environment variable `LIBGL_DEBUG=verbose` to get more information. 
 
-        If the error is due to `libffi.so.7` has wrong symbols when using conda environment, downgrade the `libffi` package to version 3.3.
+    If the error is due to `libffi.so.7` has wrong symbols when using conda environment, downgrade the `libffi` package to version 3.3.
 
-        ```bash
-        conda install libffi=3.3
-        ```
+    ```bash
+    conda install libffi=3.3
+    ```
