@@ -95,11 +95,11 @@ This repo contains the OakInk2 dataset toolkit (oakink2_toolkit) -- a Python pac
             ```
 
         2. `venv` approach
-            First use `pyenv` or other tools to install a python intepreter of version 3.10. Here 3.10.14 is used as example:
+            First use `pyenv` or other tools to install a python intepreter of version 3.10. Here 3.10.16 is used as example:
 
             ```bash
-            pyenv install 3.10.14
-            pyenv shell 3.10.14
+            pyenv install 3.10.16
+            pyenv shell 3.10.16
             ```
 
             Then create a virtual environment:
@@ -120,6 +120,8 @@ This repo contains the OakInk2 dataset toolkit (oakink2_toolkit) -- a Python pac
         ```bash
         pip install -r req_preview.txt
         ```
+
+        Note that `oakink2_preview` is compatible with `torch` version higher than specified in `req_preview.txt`. Choose the most appropriate version for your environment.
 
 2. Download the [SMPL-X model](https://smpl-x.is.tue.mpg.de/download.php)(version v1.1) and place the files at `asset/smplx_v1_1`.
     
@@ -400,6 +402,10 @@ This repo contains the OakInk2 dataset toolkit (oakink2_toolkit) -- a Python pac
             obj_offset='object_repair', # set to 'object_raw' for downsampled object raw scans
             affordance_offset="object_affordance",
         )
+
+        # Load sequence
+        # complex_task_data = oi2_data.load_complex_task(seq_key)
+        # primitive_task_data_list = oakink2_dataset.load_primitive_task(complex_task_data)
         ```
 
     2. `oakink2_viz_gui` fails to create context and reporting `libGL error: failed to load driver: swrast`.
