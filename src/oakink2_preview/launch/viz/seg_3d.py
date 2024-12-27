@@ -240,14 +240,21 @@ def run(run_cfg):
             for obj_id in ptask_data.scene_obj_list:
                 if obj_id not in ptask_data.task_obj_list:
                     obj_pose_map[obj_id] = None
+            lh_enable, rh_enable = False, False
             if ptask_data.frame_range_lh is not None:
                 offset_lh = fid - ptask_data.frame_range_lh[0]
-                v_lh = lh_out["v"][offset_lh]
-                extra_mesh.append(trimesh.Trimesh(vertices=v_lh, faces=hand_faces_lh))
+                if 0 <= offset_lh and offset_lh < lh_out["v"].shape[0]:
+                    v_lh = lh_out["v"][offset_lh]
+                    extra_mesh.append(trimesh.Trimesh(vertices=v_lh, faces=hand_faces_lh))
+                    lh_enable = True
+                    lh_id = len(extra_mesh) - 1
             if ptask_data.frame_range_rh is not None:
                 offset_rh = fid - ptask_data.frame_range_rh[0]
-                v_rh = rh_out["v"][offset_rh]
-                extra_mesh.append(trimesh.Trimesh(vertices=v_rh, faces=hand_faces_rh))
+                if 0 <= offset_rh and offset_rh < rh_out["v"].shape[0]:
+                    v_rh = rh_out["v"][offset_rh]
+                    extra_mesh.append(trimesh.Trimesh(vertices=v_rh, faces=hand_faces_rh))
+                    rh_enable = True
+                    rh_id = len(extra_mesh) - 1
 
             if run_cfg["enable_background"]:
                 bg = cv2.imread(
