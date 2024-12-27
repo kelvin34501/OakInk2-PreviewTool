@@ -53,6 +53,7 @@ This repo contains the OakInk2 dataset toolkit (oakink2_toolkit) -- a Python pac
     |   `-- scene_0x__y00z++00000000000000000000__YYYY-mm-dd-HH-MM-SS.pkl
     |-- object_raw
     |-- object_repair
+    |-- object_affordance
     `-- program
     ```
 
@@ -133,12 +134,12 @@ This repo contains the OakInk2 dataset toolkit (oakink2_toolkit) -- a Python pac
 
 3. Launch the preview tool:
     ```bash
-    python -m launch.viz.gui --cfg config/gui__preview.yml
+    python -m oakink2_preview.launch.viz.gui --cfg config/gui__preview.yml
     ```
 
     Or use the shortcut:
     ```bash
-    oakink2_viz_gui --cfg config/gui_preview.yml
+    oakink2_viz_gui --cfg config/gui__preview.yml
     ```
 
 4. (Optional) Preview task in segments.
@@ -258,6 +259,75 @@ This repo contains the OakInk2 dataset toolkit (oakink2_toolkit) -- a Python pac
     |   |-- ...
     `-- ...
     ```
+
++ `object_affordance/affordance_part`
+
+    This directory stores the object affordance part models.
+    ```
+    affordance_part
+    |-- obj_part_id
+    |   |-- *.obj
+    |   |-- ...
+    `-- ...
+    ```
+
++ `object_affordance/affordance_label.json`
+
+    This stores the available object affordance labels in the following format:
+    ```
+    {
+        'all_label': list[str],                     # list of all labels (including affordance & instantiation)
+        'affordance_label': list[str],              # list of affordance labels (reflecting part functions)
+        'affordance_instantiation_label': list[str] # list of affordance instantiation labels (reflecting interactions & primitive tasks)
+    }
+    ```
+
++ `object_affordance/instance_id.json`
+
+    This stores the object part id that maps to full object instance in the following format:
+    ```
+    [
+        obj_part_id,                        # object part id that maps to full object instance
+        ...
+    ]
+    ```
+
++ `object_affordance/object_affordance.json`
+
+    This stores the object affordance annotations in the following format:
+    ```
+    {
+        obj_part_id: {
+            "obj_part_id": str,                     # object part id
+            "is_instance": bool,                    # whether the part id maps to an instance
+            "has_model": bool,                      # whether the part id has a model, i.e object segmentation
+            "affordance": list[str],                # list of affordance labels
+            "affordance_instantiation": list[str],  # list of affordance instantiation labels
+        }
+    }
+    ```
+
++ `object_affordance/object_part_tree.json`
+
+    This stores the object part tree in the following format:
+    ```
+    {
+        obj_part_id: list[str],                     # list of object part id that are children of the current part id
+    }
+    ```
+
++ `object_affordance/part_desc.json`
+
+    This stores the object part description in the following format:
+    ```
+    {
+        obj_id: {
+            "obj_id": str,
+            "obj_name": str,
+        }
+    }
+    ```
+
 
 + `program/program_info/scene_0x__y00z++00000000000000000000__YYYY-mm-dd-HH-MM-SS.json`
 
