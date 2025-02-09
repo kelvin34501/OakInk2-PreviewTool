@@ -543,13 +543,15 @@ class OakInk2__Dataset(torch.utils.data.Dataset):
         # handle primitive def
         frame_range_def = rev_full_task_namemap[primitive_identifier]
         # load
-        return self._load_primitive_task_from_def(
+        res = self._load_primitive_task_from_def(
             seq_key=seq_key,
             frame_range_def=frame_range_def,
             return_instantiated=return_instantiated,
             program_info=program_info,
             desc_info=desc_info,
         )
+        res.primitive_identifier = primitive_identifier
+        return res
 
     def load_affordance(self, obj_id, return_instantiated=None):
         if return_instantiated is None:

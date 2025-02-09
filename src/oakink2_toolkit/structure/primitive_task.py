@@ -14,6 +14,7 @@ class OakInk2__PrimitiveTask(NamedData):
 
     seq_key: str = None
     seq_token: str = None
+    primitive_identifier: str = None
 
     primitive_task: str = None
     task_desc: str = None
