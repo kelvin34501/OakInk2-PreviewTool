@@ -213,6 +213,7 @@ class PyMultiObjRenderer:
         blend=0.6,
         extra_flags=0,
         seg=False,
+        ret_depth=False,
     ):
         for obj_name, obj_pose in obj_pose_map.items():
             if obj_pose is not None:
@@ -261,6 +262,15 @@ class PyMultiObjRenderer:
             self.scene,
             flags=pyrender.RenderFlags.NONE | (pyrender.RenderFlags.RGBA if alpha else 0) | extra_flags,
         )
+        if ret_depth:
+            depth = depth.copy()
+            if background is not None:
+                np.putmask(depth, depth == 0.0, background)
+
+            if extra_mesh is not None:
+                for ee in extra_node:
+                    self.scene.remove_node(ee)
+            return depth
 
         color = color.copy()
         if background is not None:
